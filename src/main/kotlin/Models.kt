@@ -3,25 +3,17 @@ import java.net.URI
 //typealias CrossPPAPackageDescriptor = Map<>
 
 data class CrossPPAPackageDescriptor(
-    val packageName: PackageName,
+    val packageInfo: PackageInfo,
     val versionMap: Map<PPADescriptor, Map<UbuntuRelease, PackageVersion>>
 )
 
-enum class PPADescriptor {
-    UNSTABLE {
-        override fun generateUrl(): URI =
-            URI.create("https://launchpad.net/~regolith-linux/+archive/ubuntu/unstable/+packages?batch=275&start=1")
-    },
-    STABLE {
-        override fun generateUrl(): URI =
-            URI.create("https://launchpad.net/~regolith-linux/+archive/ubuntu/stable/+packages?batch=275&start=1")
-    },
-    RELEASE {
-        override fun generateUrl(): URI =
-            URI.create("https://launchpad.net/~regolith-linux/+archive/ubuntu/release/+packages?batch=275&start=1")
-    };
+enum class PPADescriptor(val baseUrl: String) {
+    UNSTABLE("https://launchpad.net/~regolith-linux/+archive/ubuntu/unstable/"),
+    STABLE("https://launchpad.net/~regolith-linux/+archive/ubuntu/stable/"),
+    RELEASE("https://launchpad.net/~regolith-linux/+archive/ubuntu/release/");
 
-    abstract fun generateUrl(): URI
+    fun generateUrl(): URI =
+        URI.create("$baseUrl+packages?batch=275&start=1")
 }
 
 enum class UbuntuRelease {
@@ -30,6 +22,21 @@ enum class UbuntuRelease {
 
 data class PackageVersion(val rawVersion: String)
 
-data class PackageName(val name: String)
+data class PackageInfo(val name: String, val changeLog: String, val description: String) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-data class PackageDescriptor(val name: PackageName, val ppa: PPADescriptor, val version: PackageVersion, val release: UbuntuRelease)
+        other as PackageInfo
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
+}
+
+data class PackageDescriptor(val info: PackageInfo, val ppa: PPADescriptor, val version: PackageVersion, val release: UbuntuRelease)

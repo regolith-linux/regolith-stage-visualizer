@@ -1,23 +1,42 @@
+import kotlin.math.absoluteValue
 
-fun generateHtml(packageModel: Map<PackageName, Map<PPADescriptor, Map<UbuntuRelease, PackageVersion>>>) = buildString {
+fun generateHtml(packageModel: Map<PackageInfo, Map<PPADescriptor, Map<UbuntuRelease, PackageVersion>>>) = buildString {
         append(generateHead())
         for (pkg in packageModel) {
             append(generatePackageRow(CrossPPAPackageDescriptor(pkg.key, pkg.value)))
         }
-
         append(generateTail())
     }
 
 fun generatePackageRow(ppaPackageDesc: CrossPPAPackageDescriptor): String = """
     <div class="row m-2">
-      <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 package-desc">${ppaPackageDesc.packageName.name}</div>
+      ${generatePackageSummary(ppaPackageDesc)}
         <div class="col-lg-1 col-md-1 col-sm-3 col-xs-2">
           <div class="short-div"></div>
-          ${generateReleaseHeader(ppaPackageDesc)}
+          ${generateReleaseHeader()}
         </div>
         ${generateVersionMatrix(ppaPackageDesc)}
     </div>    
 """.trimIndent()
+
+fun generatePackageSummary(pkg: CrossPPAPackageDescriptor): String {
+    return """
+<div class="card" style="width: 18rem;">
+  <div class="card-body">
+    <h5 class="card-title">${pkg.packageInfo.name}</h5>
+    <h6 class="card-subtitle mb-2 text-muted">${pkg.packageInfo.description}</h6>
+  </div>
+</div>
+    """.trimIndent()
+}
+
+/*
+fun generatePackageSummary(pkg: CrossPPAPackageDescriptor): String {
+    return "<div>${pkg.packageInfo.name}</div>"
+}
+
+ */
+
 
 //         <div class="col-lg-2 col-md-2 col-sm-3 col-xs-2">
 //          <div class="short-div ppa-header">unstable</div>
@@ -40,24 +59,33 @@ fun generatePackageRow(ppaPackageDesc: CrossPPAPackageDescriptor): String = """
 fun generateVersionMatrix(ppaPackageDesc: CrossPPAPackageDescriptor) = buildString {
     for ((ppa, ubuntuVersionMap) in ppaPackageDesc.versionMap) {
         append("""
-<div class="col-lg-2 col-md-2 col-sm-3 col-xs-2">
-  <div class="short-div ppa-header">${ppa.name}</div>
-  <div class="short-div p-1">${ubuntuVersionMap[UbuntuRelease.BIONIC]?.rawVersion}</div>
-  <div class="short-div p-1">${ubuntuVersionMap[UbuntuRelease.EOAN]?.rawVersion}</div>
-  <div class="short-div p-1">${ubuntuVersionMap[UbuntuRelease.FOCAL]?.rawVersion}</div>
+<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
+  <div class="short-div ppa-header">${ppa.name.toLowerCase()}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.BIONIC]?.rawVersion)}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.EOAN]?.rawVersion)}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.FOCAL]?.rawVersion)}</div>
 </div>
 """.trimIndent())
     }
 }
 
+fun formatVersion(rawVersion: String?): String {
+    if (rawVersion == null) return ""
+
+    return """<span class="badge badge-secondary" style="background-color: ${generateVersionColor(rawVersion)};">$rawVersion</span>"""
+}
+
+fun generateVersionColor(rawVersion: String): String {
+    return "#${rawVersion.hashCode().absoluteValue.toString(16).substring(0..5)}"
+}
 
 
 //           <div class="short-div release-header p-1">bionic</div>
 //          <div class="short-div release-header p-1">eoan</div>
 //          <div class="short-div release-header p-1">focal</div>
-fun generateReleaseHeader(ppaPackageDesc: CrossPPAPackageDescriptor) =
+fun generateReleaseHeader() =
     UbuntuRelease.values().joinToString(separator = "") { descriptor ->
-        """<div class="short-div release-header p-1">$descriptor</div>"""
+        """<div class="short-div release-header p-1">${descriptor.toString().toLowerCase()}</div>"""
     }
 
 fun generateHead(): String = """
@@ -67,10 +95,7 @@ fun generateHead(): String = """
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-  <meta name="generator" content="Jekyll v4.0.1">
-  <title>Grid Template · Bootstrap</title>
+  <title>Regolith Package Versions</title>
 
   <!-- Bootstrap core CSS -->
   <link href="css/bootstrap.css" rel="stylesheet">
