@@ -1,3 +1,4 @@
+import java.time.LocalDateTime
 import kotlin.math.absoluteValue
 
 fun generateHtml(packageModel: Map<PackageInfo, Map<PPADescriptor, Map<UbuntuRelease, PackageVersion>>>) = buildString {
@@ -111,6 +112,11 @@ fun generateHead(): String = """
 fun generateTail(): String = """
   </div>
 
+  <footer>
+    <div class="footer-copyright text-center py-3">Page generated ${LocalDateTime.now()} - ©2020 Copyright:
+        <a href="https://regolith-linux.org">Regolith Linux</a>
+    </div>
+  </footer>
 </body>
 </html>    
 """.trimIndent()
