@@ -1,7 +1,7 @@
 import java.time.LocalDateTime
 import kotlin.math.absoluteValue
 
-fun generateHtml(packageModel: Map<PackageInfo, Map<PPADescriptor, Map<UbuntuRelease, PackageVersion>>>) = buildString {
+fun generateHtml(packageModel: PackageIndex) = buildString {
         append(generateHead())
         for (pkg in packageModel) {
             append(generatePackageRow(CrossPPAPackageDescriptor(pkg.key, pkg.value)))
@@ -30,14 +30,6 @@ fun generatePackageSummary(pkg: CrossPPAPackageDescriptor): String {
 </div>
     """.trimIndent()
 }
-
-/*
-fun generatePackageSummary(pkg: CrossPPAPackageDescriptor): String {
-    return "<div>${pkg.packageInfo.name}</div>"
-}
-
- */
-
 
 //         <div class="col-lg-2 col-md-2 col-sm-3 col-xs-2">
 //          <div class="short-div ppa-header">unstable</div>
@@ -70,15 +62,16 @@ fun generateVersionMatrix(ppaPackageDesc: CrossPPAPackageDescriptor) = buildStri
     }
 }
 
-fun formatVersion(rawVersion: String?): String {
-    if (rawVersion == null) return ""
+fun formatVersion(rawVersion: String?) =
+    when (rawVersion) {
+        null -> ""
+        else -> """<span class="badge badge-secondary" style="background-color: ${generateVersionColor(rawVersion)};">$rawVersion</span>"""
+    }
 
-    return """<span class="badge badge-secondary" style="background-color: ${generateVersionColor(rawVersion)};">$rawVersion</span>"""
-}
 
-fun generateVersionColor(rawVersion: String): String {
-    return "#${rawVersion.hashCode().absoluteValue.toString(16).substring(0..5)}"
-}
+fun generateVersionColor(rawVersion: String) =
+    "#${rawVersion.hashCode().absoluteValue.toString(16).substring(0..5)}"
+
 
 
 //           <div class="short-div release-header p-1">bionic</div>

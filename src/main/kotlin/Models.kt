@@ -1,26 +1,35 @@
 import java.net.URI
 
-//typealias CrossPPAPackageDescriptor = Map<>
+typealias PPAVersionIndex = Map<PPADescriptor, Map<UbuntuRelease, PackageVersion>>
+typealias PackageIndex = Map<PackageInfo, PPAVersionIndex>
+
+typealias MutablePPAVersionIndex = MutableMap<PPADescriptor, MutableMap<UbuntuRelease, PackageVersion>>
+typealias MutablePackageIndex = MutableMap<PackageInfo, MutablePPAVersionIndex>
 
 data class CrossPPAPackageDescriptor(
     val packageInfo: PackageInfo,
-    val versionMap: Map<PPADescriptor, Map<UbuntuRelease, PackageVersion>>
+    val versionMap: PPAVersionIndex
 )
 
-enum class PPADescriptor(val baseUrl: String) {
-    UNSTABLE("https://launchpad.net/~regolith-linux/+archive/ubuntu/unstable/"),
-    STABLE("https://launchpad.net/~regolith-linux/+archive/ubuntu/stable/"),
-    RELEASE("https://launchpad.net/~regolith-linux/+archive/ubuntu/release/");
-
+sealed class PPADescriptor(val baseUrl: String, val name: String) {
     fun generateUrl(): URI =
         URI.create("$baseUrl+packages?batch=275&start=1")
 }
+
+object UNSTABLE : PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/unstable/", "UNSTABLE")
+object STABLE: PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/stable/", "STABLE")
+object RELEASE: PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/release/", "RELEASE")
+class CustomLaunchpadDescriptor(url: String, name: String): PPADescriptor(url, name)
 
 enum class UbuntuRelease {
     BIONIC, EOAN, FOCAL
 }
 
-data class PackageVersion(val rawVersion: String)
+data class PackageVersion(val rawVersion: String) {
+    override fun toString(): String {
+        return rawVersion
+    }
+}
 
 data class PackageInfo(val name: String, val changeLog: String, val description: String) {
     override fun equals(other: Any?): Boolean {
@@ -36,6 +45,10 @@ data class PackageInfo(val name: String, val changeLog: String, val description:
 
     override fun hashCode(): Int {
         return name.hashCode()
+    }
+
+    override fun toString(): String {
+        return name
     }
 }
 
