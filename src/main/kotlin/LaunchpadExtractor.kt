@@ -6,30 +6,26 @@ private data class IntermediatePackageInfo(val nameAndVersion: String, val extra
  * Produce a list of PackageDescriptor for packages from the specified URI
  * @param source definition of source URI
  */
-fun readPPA(source: PPADescriptor, loadExtras: Boolean = true): List<PackageDescriptor> {
-    val doc = Jsoup.connect(source.generateUrl().toURL().toString()).get()
-
-    return doc.select("tr.archive_package_row")
-        .mapNotNull { element ->
-            val nameAndVersion = element.getElementsByTag("a").firstOrNull()?.text() ?: return@mapNotNull null
-            val release = element.getElementsByTag("td").getOrNull(4)?.text() ?: return@mapNotNull null
-            val extrasLink = element.getElementsByTag("a").firstOrNull()?.attributes()?.get("href") ?: return@mapNotNull null
-
-            IntermediatePackageInfo(nameAndVersion, source.baseUrl + extrasLink, UbuntuRelease.valueOf(release.toUpperCase()))
-        }
+fun readPPA(source: PPADescriptor, loadExtras: Boolean = true, pkgNameMatch: String? = null): List<PackageDescriptor> =
+    fetchPackageInfo(source)
         .map { pkgInfo ->
             val nvTokens = pkgInfo.nameAndVersion.split(" - ")
             require(nvTokens.size == 2) { "Unexpected string parse for $nvTokens."}
 
+            // If a filter is set, match name against package and return null if no match.
+            if (pkgNameMatch != null && !nvTokens[0].contains(pkgNameMatch)) {
+                return@map null
+            }
+
             val (changelog, desc) = if (loadExtras)
                 readPackageExtras(pkgInfo.extrasLink)
             else
-                "" to ""
+                null to null
 
             PackageDescriptor(PackageInfo(nvTokens[0], changelog, desc), source, PackageVersion(nvTokens[1]), pkgInfo.ubuntuRelease)
         }
+        .filterNotNull()
         .toList()
-}
 
 fun readPackageExtras(extrasLink: String): Pair<String, String> {
         val doc = Jsoup.connect(extrasLink).get()
@@ -43,11 +39,11 @@ fun readPackageExtras(extrasLink: String): Pair<String, String> {
         return changeLog to description.substring(htmlTermPos).trim()
 }
 
-fun fetchPackageIndex(vararg ppas: PPADescriptor, fetchExtras: Boolean = false): PackageIndex {
+fun fetchPackageIndex(vararg ppas: PPADescriptor, fetchExtras: Boolean = false, pkgNameMatch: String? = null): PackageIndex {
     val packageIndex: MutablePackageIndex = mutableMapOf()
 
     ppas
-        .map { uri -> readPPA(uri, fetchExtras) }
+        .map { uri -> readPPA(uri, fetchExtras, pkgNameMatch) }
         .apply { collect(this, packageIndex) }
 
     return packageIndex
@@ -62,4 +58,16 @@ fun collect(packages: List<List<PackageDescriptor>>, container: MutablePackageIn
 
             container[packageDescriptor.info]!![packageDescriptor.ppa]!![packageDescriptor.release] = packageDescriptor.version
         }
+}
+
+private fun fetchPackageInfo(source: PPADescriptor): List<IntermediatePackageInfo> {
+    val doc = Jsoup.connect(source.generateUrl().toURL().toString()).get()
+
+    return doc.select("tr.archive_package_row").mapNotNull { element ->
+        val nameAndVersion = element.getElementsByTag("a").firstOrNull()?.text() ?: return@mapNotNull null
+        val release = element.getElementsByTag("td").getOrNull(4)?.text() ?: return@mapNotNull null
+        val extrasLink = element.getElementsByTag("a").firstOrNull()?.attributes()?.get("href") ?: return@mapNotNull null
+
+        IntermediatePackageInfo(nameAndVersion, source.baseUrl + extrasLink, UbuntuRelease.valueOf(release.toUpperCase()))
+    }
 }

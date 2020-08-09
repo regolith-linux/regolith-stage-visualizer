@@ -1,17 +1,14 @@
-import java.lang.IllegalStateException
-
 fun main(args: Array<String>) {
-    val sourcePPA: PPADescriptor = UNSTABLE
-    val targetPPA: PPADescriptor = STABLE
+    val sourcePPA: PPADescriptor = PPADescriptor.fromName(args.getOrElse(0) { "UNSTABLE" })
+    val targetPPA: PPADescriptor = PPADescriptor.fromName(args.getOrElse(1) { "STABLE" })
+    val packageNameFilter: String? = args.getOrNull(2)
 
-    val index = fetchPackageIndex(sourcePPA, targetPPA, fetchExtras = false)
+    val index = fetchPackageIndex(sourcePPA, targetPPA, fetchExtras = false, pkgNameMatch = packageNameFilter)
 
     index
         .filter { it.value.containsKey(sourcePPA) } // only consider packages in source PPA
         .forEach { pkgEntry ->
-            // println("Evaluating ${pkgEntry.key}")
-
-            val sourceVersions = pkgEntry.value[sourcePPA] ?: throw IllegalStateException("Expected value")
+            val sourceVersions = pkgEntry.value[sourcePPA] ?: error("Expected value")
             val targetVersions = pkgEntry.value[targetPPA] ?: mapOf()
 
             if (sourceVersions != targetVersions)
@@ -28,19 +25,19 @@ fun upgradePackageVersions(
 
     sourceVersions.second.forEach { (release, version) ->
         if (targetVersions.second[release] != version && !packagesUpgraded.contains(pkgInfo)) {
-            upgradePackage(pkgInfo, sourceVersions.first, targetVersions.first, version, targetVersions.second[release])
+            upgradePackageUniformVersions(pkgInfo, sourceVersions.first, targetVersions.first, version, targetVersions.second[release])
             packagesUpgraded.add(pkgInfo)
         }
     }
 }
 
-fun upgradePackage(
+fun upgradePackageUniformVersions(
     pkgInfo: PackageInfo,
     sourcePPA: PPADescriptor,
     targetPPA: PPADescriptor,
     targetVersion: PackageVersion,
     oldVersion: PackageVersion?
 ) {
-    println("# echo Upgrading $pkgInfo from $oldVersion ($targetPPA) to $targetVersion ($sourcePPA).")
+    println("# echo Upgrading $pkgInfo from $oldVersion to $targetVersion.")
     println("./promote-stage.sh ${sourcePPA.name.toLowerCase()} ${targetPPA.name.toLowerCase()} $pkgInfo")
 }

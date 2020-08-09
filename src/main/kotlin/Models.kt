@@ -14,6 +14,19 @@ data class CrossPPAPackageDescriptor(
 sealed class PPADescriptor(val baseUrl: String, val name: String) {
     fun generateUrl(): URI =
         URI.create("$baseUrl+packages?batch=275&start=1")
+
+    companion object {
+        fun fromName(name: String): PPADescriptor = when(name.toUpperCase()) {
+            "UNSTABLE" -> UNSTABLE
+            "STABLE" -> STABLE
+            "RELEASE" -> RELEASE
+            else -> error("Unkwown PPA name $name")
+        }
+    }
+
+    override fun toString(): String {
+        return name
+    }
 }
 
 object UNSTABLE : PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/unstable/", "UNSTABLE")
@@ -31,7 +44,7 @@ data class PackageVersion(val rawVersion: String) {
     }
 }
 
-data class PackageInfo(val name: String, val changeLog: String, val description: String) {
+data class PackageInfo(val name: String, val changeLog: String?, val description: String?) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
