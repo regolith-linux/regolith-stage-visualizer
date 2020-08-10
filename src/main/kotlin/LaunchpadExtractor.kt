@@ -1,6 +1,6 @@
 import org.jsoup.Jsoup
 
-private data class IntermediatePackageInfo(val nameAndVersion: String, val extrasLink: String, val ubuntuRelease: UbuntuRelease)
+private data class IntermediatePackageInfo(val nameAndVersion: String, val buildStatus: String, val extrasLink: String, val ubuntuRelease: UbuntuRelease)
 
 /**
  * Produce a list of PackageDescriptor for packages from the specified URI
@@ -22,7 +22,7 @@ fun readPPA(source: PPADescriptor, loadExtras: Boolean = true, pkgNameMatch: Str
             else
                 null to null
 
-            PackageDescriptor(PackageInfo(nvTokens[0], changelog, desc), source, PackageVersion(nvTokens[1]), pkgInfo.ubuntuRelease)
+            PackageDescriptor(PackageInfo(nvTokens[0], desc), source, pkgInfo.buildStatus, changelog, nvTokens[1], pkgInfo.ubuntuRelease)
         }
         .filterNotNull()
         .toList()
@@ -56,7 +56,7 @@ fun collect(packages: List<List<PackageDescriptor>>, container: MutablePackageIn
             if (!container.containsKey(packageDescriptor.info)) container[packageDescriptor.info] = mutableMapOf()
             if (!container[packageDescriptor.info]!!.containsKey(packageDescriptor.ppa)) container[packageDescriptor.info]!![packageDescriptor.ppa] = mutableMapOf()
 
-            container[packageDescriptor.info]!![packageDescriptor.ppa]!![packageDescriptor.release] = packageDescriptor.version
+            container[packageDescriptor.info]!![packageDescriptor.ppa]!![packageDescriptor.release] = PPAPackageInfo(packageDescriptor.version, packageDescriptor.changeLog, packageDescriptor.status)
         }
 }
 
@@ -65,9 +65,10 @@ private fun fetchPackageInfo(source: PPADescriptor): List<IntermediatePackageInf
 
     return doc.select("tr.archive_package_row").mapNotNull { element ->
         val nameAndVersion = element.getElementsByTag("a").firstOrNull()?.text() ?: return@mapNotNull null
+        val status  = element.getElementsByTag("td").getOrNull(3)?.text() ?: return@mapNotNull null
         val release = element.getElementsByTag("td").getOrNull(4)?.text() ?: return@mapNotNull null
         val extrasLink = element.getElementsByTag("a").firstOrNull()?.attributes()?.get("href") ?: return@mapNotNull null
 
-        IntermediatePackageInfo(nameAndVersion, source.baseUrl + extrasLink, UbuntuRelease.valueOf(release.toUpperCase()))
+        IntermediatePackageInfo(nameAndVersion, status, source.baseUrl + extrasLink, UbuntuRelease.valueOf(release.toLowerCase()))
     }
 }

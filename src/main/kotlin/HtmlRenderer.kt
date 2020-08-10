@@ -1,4 +1,5 @@
 import java.time.LocalDateTime
+import java.util.*
 import kotlin.math.absoluteValue
 
 fun generateHtml(packageModel: PackageIndex) = buildString {
@@ -54,18 +55,28 @@ fun generateVersionMatrix(ppaPackageDesc: CrossPPAPackageDescriptor) = buildStri
         append("""
 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
   <div class="short-div ppa-header">${ppa.name.toLowerCase()}</div>
-  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.BIONIC]?.rawVersion)}</div>
-  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.EOAN]?.rawVersion)}</div>
-  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.FOCAL]?.rawVersion)}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.bionic])}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.eoan])}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.focal])}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.groovy])}</div>
 </div>
 """.trimIndent())
     }
 }
 
-fun formatVersion(rawVersion: String?) =
-    when (rawVersion) {
+fun formatVersion(pkgInfo: PPAPackageInfo?, id: Long = Random().nextLong()) =
+    when (pkgInfo) {
         null -> ""
-        else -> """<span class="badge badge-secondary" style="background-color: ${generateVersionColor(rawVersion)};">$rawVersion</span>"""
+        else -> """
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#changelog-$id" aria-expanded="false" aria-controls="collapseExample" style="background-color: ${generateVersionColor(pkgInfo.version)};">
+            ${pkgInfo.version}
+            </button>
+            <div class="collapse" id="changelog-$id">
+              <div class="card card-body"><p>
+                ${org.apache.commons.text.StringEscapeUtils.escapeHtml4(pkgInfo.changeLog)}
+              </p></div>
+            </div>
+        """.trimIndent()
     }
 
 
