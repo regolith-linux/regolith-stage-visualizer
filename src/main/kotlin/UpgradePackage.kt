@@ -32,14 +32,6 @@ fun upgradePackageVersions(
     sourceVersions.second.forEach { (release, pkgPPAInfo) ->
         if (targetVersions.second[release] != pkgPPAInfo && !packagesUpgraded.contains(pkgInfo)) {
             if (uniformVersions(sourceVersions.second)) {
-                upgradePackage(
-                    pkgInfo,
-                    sourceVersions,
-                    targetVersions,
-                    pkgPPAInfo.version,
-                    targetVersions.second[release]?.version
-                )
-            } else {
                 upgradePackageUniformVersions(
                     pkgInfo,
                     sourceVersions.second.keys,
@@ -49,6 +41,14 @@ fun upgradePackageVersions(
                     targetVersions.second[release]?.version,
                     targetVersions.second
                 )
+            } else {
+                upgradePackage(
+                    pkgInfo,
+                    sourceVersions,
+                    targetVersions,
+                    pkgPPAInfo.version,
+                    targetVersions.second[release]?.version
+                )
             }
             packagesUpgraded.add(pkgInfo)
         }
@@ -56,11 +56,11 @@ fun upgradePackageVersions(
 }
 
 // Determine if the set of versions are uniform (all are the same).
-fun uniformVersions(versions: Map<UbuntuRelease, PPAPackageInfo>): Boolean =
-    versions.entries.map { it.value }.toSet().size > 1
+private fun uniformVersions(versions: Map<UbuntuRelease, PPAPackageInfo>): Boolean =
+    versions.entries.map { it.value }.toSet().size == 1
 
 // copy-package --from=$SOURCE_PPA --from-suite=$SOURCE_VERSION --to=$TARGET_PPA --to-suite=$TARGET_VERSION -b -y $PACKAGE
-fun upgradePackage(
+private fun upgradePackage(
     pkgInfo: PackageInfo,
     sourceVersions: Pair<PPADescriptor, Map<UbuntuRelease, PPAPackageInfo>>,
     targetVersions: Pair<PPADescriptor, Map<UbuntuRelease, PPAPackageInfo>>,
@@ -82,7 +82,7 @@ fun upgradePackage(
     }
 }
 
-fun upgradePackageUniformVersions(
+private fun upgradePackageUniformVersions(
     pkgInfo: PackageInfo,
     versionSet: Set<UbuntuRelease>,
     sourcePPA: PPADescriptor,
