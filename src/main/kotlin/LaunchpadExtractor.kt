@@ -1,4 +1,5 @@
 import org.jsoup.Jsoup
+import java.lang.IllegalArgumentException
 
 private data class IntermediatePackageInfo(val nameAndVersion: String, val buildStatus: String, val extrasLink: String, val ubuntuRelease: UbuntuRelease)
 
@@ -69,6 +70,12 @@ private fun fetchPackageInfo(source: PPADescriptor): List<IntermediatePackageInf
         val release = element.getElementsByTag("td").getOrNull(4)?.text() ?: return@mapNotNull null
         val extrasLink = element.getElementsByTag("a").firstOrNull()?.attributes()?.get("href") ?: return@mapNotNull null
 
-        IntermediatePackageInfo(nameAndVersion, status, source.baseUrl + extrasLink, UbuntuRelease.valueOf(release.toLowerCase()))
+        val releaseEnum = try {
+            UbuntuRelease.valueOf(release.toLowerCase())
+        } catch (e: IllegalArgumentException) {
+            return@mapNotNull null
+        }
+
+        IntermediatePackageInfo(nameAndVersion, status, source.baseUrl + extrasLink, releaseEnum)
     }
 }

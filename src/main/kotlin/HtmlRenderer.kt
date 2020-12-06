@@ -55,8 +55,7 @@ fun generateVersionMatrix(ppaPackageDesc: CrossPPAPackageDescriptor) = buildStri
         append("""
 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
   <div class="short-div ppa-header">${ppa.name.toLowerCase()}</div>
-  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.bionic])}</div>
-  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.eoan])}</div>
+  <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.bionic])}</div> 
   <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.focal])}</div>
   <div class="short-div p-1">${formatVersion(ubuntuVersionMap[UbuntuRelease.groovy])}</div>
 </div>

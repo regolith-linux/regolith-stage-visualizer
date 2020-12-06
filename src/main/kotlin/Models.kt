@@ -26,6 +26,7 @@ sealed class PPADescriptor(val baseUrl: String, val name: String) {
             "UNSTABLE" -> UNSTABLE
             "STABLE" -> STABLE
             "RELEASE" -> RELEASE
+            "REGOLITH-1.4.1" -> REGOLITH_141
             else -> error("Unkwown PPA name $name")
         }
     }
@@ -40,10 +41,11 @@ object EXPERIMENTAL : PPADescriptor("https://launchpad.net/~regolith-linux/+arch
 object UNSTABLE : PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/unstable/", "UNSTABLE")
 object STABLE: PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/stable/", "STABLE")
 object RELEASE: PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/release/", "RELEASE")
+object REGOLITH_141: PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/regolith-1.4.1/", "REGOLITH-1.4.1")
 class CustomLaunchpadDescriptor(url: String, name: String): PPADescriptor(url, name)
 
 enum class UbuntuRelease {
-    bionic, eoan, focal, groovy
+    bionic, /*eoan, */focal, groovy
 }
 
 data class PackageInfo(val name: String, val description: String?) {

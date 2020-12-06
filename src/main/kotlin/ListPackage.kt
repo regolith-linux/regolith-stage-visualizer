@@ -4,7 +4,7 @@
 fun main(args: Array<String>) {
     val ppaDescriptor = PPADescriptor.fromName(args.getOrElse(0) { "RELEASE" })
 
-    printPackages(readPPA(ppaDescriptor, true))
+    printPackages(readPPA(ppaDescriptor, false))
 }
 
 fun printPackages(pkgList: Iterable<PackageDescriptor>) {
