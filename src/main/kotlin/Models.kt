@@ -44,8 +44,8 @@ object RELEASE: PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ub
 object REGOLITH_141: PPADescriptor("https://launchpad.net/~regolith-linux/+archive/ubuntu/regolith-1.4.1/", "REGOLITH-1.4.1")
 class CustomLaunchpadDescriptor(url: String, name: String): PPADescriptor(url, name)
 
-enum class UbuntuRelease {
-    bionic, /*eoan, */focal, groovy
+enum class UbuntuRelease(val active: Boolean = true) {
+    bionic, eoan(false), focal, groovy
 }
 
 data class PackageInfo(val name: String, val description: String?) {

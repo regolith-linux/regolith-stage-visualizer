@@ -12,8 +12,8 @@ fun main(args: Array<String>) {
     index
         .filter { it.value.containsKey(sourcePPA) } // only consider packages in source PPA
         .forEach { pkgEntry ->
-            val sourceVersions = pkgEntry.value[sourcePPA] ?: error("Expected value")
-            val targetVersions = pkgEntry.value[targetPPA] ?: mapOf()
+            val sourceVersions = pkgEntry.value[sourcePPA]?.filter { it.key.active } ?: error("Expected value")
+            val targetVersions = pkgEntry.value[targetPPA]?.filter { it.key.active } ?: mapOf()
 
             if (sourceVersions != targetVersions)
                 upgradePackageVersions(pkgEntry.key, sourcePPA to sourceVersions, targetPPA to targetVersions)
