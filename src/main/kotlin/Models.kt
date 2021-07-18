@@ -15,7 +15,7 @@ data class PPAPackageInfo(val version: String, val changeLog: String?, val build
 
 sealed class PPADescriptor(val baseUrl: String, val name: String) {
     fun generateUrl(): URI =
-        URI.create("$baseUrl+packages?batch=275&start=1")
+        URI.create("$baseUrl+packages?batch=300&start=0")
 
     fun generateSuiteUri(): String = "~regolith-linux/ubuntu/${name.toLowerCase()}"
 
@@ -45,7 +45,7 @@ object REGOLITH_141: PPADescriptor("https://launchpad.net/~regolith-linux/+archi
 class CustomLaunchpadDescriptor(url: String, name: String): PPADescriptor(url, name)
 
 enum class UbuntuRelease(val active: Boolean = true) {
-    bionic, eoan(false), focal, groovy
+    bionic, eoan(false), focal, groovy(false), hirsute
 }
 
 data class PackageInfo(val name: String, val description: String?) {

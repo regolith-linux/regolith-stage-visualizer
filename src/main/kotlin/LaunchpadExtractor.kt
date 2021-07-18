@@ -73,7 +73,7 @@ private fun fetchPackageInfo(source: PPADescriptor): List<IntermediatePackageInf
         val releaseEnum = try {
             UbuntuRelease.valueOf(release.toLowerCase())
         } catch (e: IllegalArgumentException) {
-            return@mapNotNull null
+            error("Unknown Ubuntu version: $release")
         }
 
         IntermediatePackageInfo(nameAndVersion, status, source.baseUrl + extrasLink, releaseEnum)
