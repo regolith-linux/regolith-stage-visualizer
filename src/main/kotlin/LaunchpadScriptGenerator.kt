@@ -29,19 +29,15 @@ object CommandCollector {
         dedupeBuffer.add(command)
     }
 
+    // The script for the next batch (nextOnly) or for all batches, each
+    // followed by a sleep. Reading it leaves the batches as they are, and an
+    // empty collector gives an empty script.
     fun collect(nextOnly: Boolean = false): String {
-        val source = if (nextOnly) listOf(buffer.first()) else buffer
+        val source = if (nextOnly) buffer.take(1) else buffer
 
         return source
-            .map {
-                it.add(SLEEP_COMMAND)
-                it
-            }
-            .flatten()
-            .map { command ->
-                command.scriptBlock
-            }
-            .joinToString(separator = "\n") { it }
+            .flatMap { batch -> batch + SLEEP_COMMAND }
+            .joinToString(separator = "\n") { command -> command.scriptBlock }
     }
 
     private fun Iterable<Command>.containsPackage(packageName: String): Boolean =
